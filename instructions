@@ -1,0 +1,71 @@
+Your Task
+
+Build an Arkanoid / Breakout-like game.
+
+Your entry should clearly feature:
+
+    A player-controlled paddle
+
+    One or more balls that bounce and can be lost
+
+    Bricks/targets that can be cleared/destroyed
+
+    A game loop (win/lose, score, levels, etc.) 
+
+Extra spice (optional): Add a twist (powerups, weird physics, bosses, roguelite upgrades, procedural bricks, rhythm bricks, multiball mayhem…).
+Rules (simple on purpose)
+
+    ✅ Must use Phaser (any version).
+
+    ✅ Any libraries and plugins are allowed.
+
+    ✅ AI assistance is welcome (code, art, writing, whatever).
+
+    ✅ No scope constraints (team size, assets, time spent, ambition — all fine).
+
+    ✅ Please credit third-party assets/libraries you use and only submit content you have rights to use.
+
+    ❌ Not a brick-breaker / not Phaser = not eligible for the jam. 
+
+Note on pre-existing work: Since this jam is intentionally relaxed, you may reuse things — just disclose it on your submission page so people understand what they’re playing.
+Schedule (Europe/Athens)
+
+    Start: Friday, 20 February 2026 — 00:01
+
+    End / Submission Deadline: Sunday, 22 February 2026 — 23:59 
+
+(That’s basically the whole weekend — ship something and upload before the cutoff.)
+Jam Format
+
+This jam is UNRANKED. No judging, no ratings pressure — just a showcase.
+
+With that in mind, we can still do informal shoutouts like:
+
+    “Most Chaotic Ball”
+
+    “Best Feel / Juice”
+
+    “Weirdest Bricks”
+
+    “Most Stylish Phaser” 
+
+(These are just for fun — no leaderboard.)
+How to Join
+
+    Click Join Jam
+
+    Make your game
+
+    Upload your project on itch.io
+
+    Submit it to the jam before Sunday 22 Feb 2026, 23:59 (Athens time) 
+
+Recommended for your itch page
+
+    A short how to play
+
+    Controls
+
+    A screenshot/GIF
+
+    Credits + tools used (including AI if you want to mention it) 
