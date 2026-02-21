@@ -23,6 +23,21 @@ export class GameScene extends Phaser.Scene {
     this.explosionNextHit = false; // Explosion powerup active
     this.laserActive = false; // Laser powerup active
     this.currentLevel = 1; // Level tracking (1-3)
+    this.buttonJustClicked = false; // Flag to prevent double-trigger from button
+  }
+
+  preload() {
+    // Load background images for all levels
+    this.load.image("forest", "assets/backgrounds/forest2.png");
+    this.load.image("town", "assets/backgrounds/town2.png");
+    this.load.image("castle", "assets/backgrounds/castle2.png");
+    // Load brick character images per level
+    this.load.image("smalltreeboi", "assets/characters/smalltreeboi.png");
+    this.load.image("smalltreeboi2", "assets/characters/smalltreeboi2.png");
+    this.load.image("smallbandit", "assets/characters/smallbandit.png");
+    this.load.image("smallbandit2", "assets/characters/smallbandit2.png");
+    this.load.image("smallspear", "assets/characters/smallspear.png");
+    this.load.image("smallhammer", "assets/characters/smallhammer.png");
   }
 
   create() {
@@ -37,6 +52,9 @@ export class GameScene extends Phaser.Scene {
       this.currentLevel = 1; // Initialize level if not set
     }
 
+    // Add background based on level
+    this.createBackground();
+
     this.paddle = new Paddle(this, 600, 850);
     this.ball = new Ball(this, 400, 540);
     this.balls.push(this.ball);
@@ -49,20 +67,40 @@ export class GameScene extends Phaser.Scene {
     this.physics.add.collider(this.ball, this.bricks, this.onBallHitBrick, null, this);
     this.physics.add.overlap(this.paddle, this.powerups, this.onPowerupCollect, null, this);
 
-    this.scoreText = this.add.text(20, 16, "Score: 0", {
-      fontSize: "20px",
-      color: "#dfe7ff"
+    const uiPanelWidth = 240;
+    const uiPanelHeight = 44;
+    const uiPanelPadding = 12;
+    const uiPanelY = 12;
+    const scorePanelX = 12;
+    const livesPanelX = this.scale.width - uiPanelWidth - 12;
+
+    const uiPanels = this.add.graphics();
+    uiPanels.fillGradientStyle(0xffffff, 0xffffff, 0xd9d9d9, 0xd9d9d9, 1);
+    uiPanels.fillRect(scorePanelX, uiPanelY, uiPanelWidth, uiPanelHeight);
+    uiPanels.fillRect(livesPanelX, uiPanelY, uiPanelWidth, uiPanelHeight);
+    uiPanels.lineStyle(2, 0x000000, 1);
+    uiPanels.strokeRect(scorePanelX, uiPanelY, uiPanelWidth, uiPanelHeight);
+    uiPanels.strokeRect(livesPanelX, uiPanelY, uiPanelWidth, uiPanelHeight);
+
+    this.scoreText = this.add.text(scorePanelX + uiPanelPadding, uiPanelY + 8, "Score: 0", {
+      fontSize: "24px",
+      fontStyle: "bold",
+      color: "#000000"
     });
 
-    this.livesText = this.add.text(680, 16, "Lives: 3", {
-      fontSize: "20px",
-      color: "#dfe7ff"
+    this.livesText = this.add.text(livesPanelX + uiPanelPadding, uiPanelY + 8, "Lives: 3", {
+      fontSize: "24px",
+      fontStyle: "bold",
+      color: "#000000"
     });
 
     this.messageText = this.add.text(this.scale.width / 2, this.scale.height / 2, "Click or press SPACE to launch", {
-      fontSize: "24px",
+      fontSize: "56px",
+      fontStyle: "bold",
       color: "#ffd166",
-      align: "center"
+      align: "center",
+      stroke: "#000000",
+      strokeThickness: 6
     });
     this.messageText.setOrigin(0.5, 0.5);
 
@@ -74,10 +112,14 @@ export class GameScene extends Phaser.Scene {
       padding: { x: 8, y: 4 }
     });
     testWinButton.setOrigin(1, 1);
-    testWinButton.setInteractive();
-    testWinButton.on("pointerdown", (pointer, gameObject, event) => {
-      event.stopPropagation();
+    testWinButton.setInteractive({ useHandCursor: true });
+    testWinButton.on("pointerdown", (pointer) => {
+      console.log("Button clicked, about to call winGame()");
+      console.log("Before winGame - isWin:", this.isWin);
+      this.buttonJustClicked = true;
+      pointer.event.stopImmediatePropagation();
       this.winGame();
+      console.log("After winGame - isWin:", this.isWin);
     });
 
     this.cursors = this.input.keyboard.createCursorKeys();
@@ -90,6 +132,11 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.input.on("pointerdown", () => {
+      if (this.buttonJustClicked) {
+        this.buttonJustClicked = false;
+        return;
+      }
+      console.log("Scene pointerdown - isGameOver:", this.isGameOver, "isWin:", this.isWin);
       if (this.isGameOver || this.isWin) {
         if (this.isWin && this.currentLevel < 3) {
           // Proceed to next level
@@ -146,7 +193,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     // Handle all balls (main ball + extra balls)
-    this.balls = this.balls.filter(ball => !ball.active || ball === this.ball); // Remove destroyed balls
+    this.balls = this.balls.filter(ball => ball.active); // Remove destroyed balls
     
     this.balls.forEach(ball => {
       if (ball.getData("stuck")) {
@@ -214,6 +261,14 @@ export class GameScene extends Phaser.Scene {
       graphics.destroy();
     }
 
+    if (!this.textures.exists("brick-bg")) {
+      const graphics = this.add.graphics();
+      graphics.fillStyle(0xffffff, 1);
+      graphics.fillRoundedRect(0, 0, 35, 60, 6);
+      graphics.generateTexture("brick-bg", 35, 60);
+      graphics.destroy();
+    }
+
     if (!this.textures.exists("powerup")) {
       const graphics = this.add.graphics();
       graphics.fillStyle(0xffffff, 1);
@@ -231,6 +286,47 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  getBrickTexturesForLevel() {
+    if (this.currentLevel === 1) {
+      return { lower: "smalltreeboi", upper: "smalltreeboi2" };
+    }
+    if (this.currentLevel === 2) {
+      return { lower: "smallbandit", upper: "smallbandit2" };
+    }
+    return { lower: "smallspear", upper: "smallhammer" };
+  }
+
+  getBrickTextureForRow(row) {
+    const { lower, upper } = this.getBrickTexturesForLevel();
+    return row < 5 ? lower : upper;
+  }
+
+  getBrickBackgroundColor() {
+    if (this.currentLevel === 1) {
+      return 0xcfeecf; // Light green
+    }
+    if (this.currentLevel === 2) {
+      return 0xe0e0e0; // Light gray
+    }
+    return 0xc0c0c0; // Light silver
+  }
+
+
+  createBackground() {
+    let backgroundKey;
+    if (this.currentLevel === 1) {
+      backgroundKey = "forest";
+    } else if (this.currentLevel === 2) {
+      backgroundKey = "town";
+    } else {
+      backgroundKey = "castle";
+    }
+
+    const background = this.add.image(this.scale.width / 2, this.scale.height / 2, backgroundKey);
+    background.setDepth(-1); // Behind all other objects
+    background.setDisplaySize(this.scale.width, this.scale.height);
+  }
+
   createBricks() {
     const numClusters = 2;
     const clusterCols = 9;
@@ -241,7 +337,8 @@ export class GameScene extends Phaser.Scene {
     const clusterWidth = clusterCols * spacingX;
     const gap = 100; // Gap between clusters (large enough for ball)
     const totalWidth = (clusterWidth * numClusters) + gap;
-    const offsetX = (1200 - totalWidth) / 2; // Center clusters horizontally
+    const offsetX = (1400 - totalWidth) / 2; // Center clusters horizontally
+    const backgroundColor = this.getBrickBackgroundColor();
 
     for (let clusterIdx = 0; clusterIdx < numClusters; clusterIdx++) {
       const baseX = offsetX + clusterIdx * (clusterWidth + gap);
@@ -250,12 +347,28 @@ export class GameScene extends Phaser.Scene {
         for (let col = 0; col < clusterCols; col += 1) {
           const x = baseX + col * spacingX;
           const y = offsetY + row * spacingY;
-          const brick = this.bricks.create(x, y, "brick");
-          brick.setTint(Phaser.Display.Color.GetColor(255, 107 - row * 10, 107 + row * 15));
+          const brickTexture = this.getBrickTextureForRow(row);
+          const brickBg = this.add.image(x, y, "brick-bg");
+          brickBg.setDisplaySize(35, 60);
+          brickBg.setTint(backgroundColor);
+          brickBg.setDepth(0);
+          const brick = this.bricks.create(x, y, brickTexture);
+          brick.setDisplaySize(35, 60);
+          brick.refreshBody();
+          brick.setDepth(1);
+          brick.setData("bg", brickBg);
           brick.health = 2; // Bricks take 2 hits to destroy
         }
       }
     }
+  }
+
+  destroyBrick(brick) {
+    const bg = brick.getData("bg");
+    if (bg) {
+      bg.destroy();
+    }
+    brick.disableBody(true, true);
   }
 
   onBallHitPaddle(ball, paddle) {
@@ -278,7 +391,7 @@ export class GameScene extends Phaser.Scene {
     brick.health -= 1;
     
     if (brick.health <= 0) {
-      brick.disableBody(true, true);
+      this.destroyBrick(brick);
       this.score += 10;
     } else {
       // Visual feedback: reduce opacity when damaged
@@ -330,27 +443,33 @@ export class GameScene extends Phaser.Scene {
     const overlay = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x000000, 0.9);
     overlay.setDepth(100);
     
-    // Display "YOU DIED" message
+    // Display "GIT GUD" message
     const diedText = this.add.text(this.scale.width / 2, this.scale.height / 2 - 60, "YOU DIED", {
-      fontSize: "80px",
+      fontSize: "96px",
       fontStyle: "bold",
       color: "#ff0000",
-      align: "center"
+      align: "center",
+      stroke: "#000000",
+      strokeThickness: 8
     });
     diedText.setOrigin(0.5, 0.5);
     diedText.setDepth(101);
     
     // Display restart message
     const restartText = this.add.text(this.scale.width / 2, this.scale.height / 2 + 80, "Click or press SPACE to restart", {
-      fontSize: "20px",
+      fontSize: "56px",
+      fontStyle: "bold",
       color: "#ffd166",
-      align: "center"
+      align: "center",
+      stroke: "#000000",
+      strokeThickness: 6
     });
     restartText.setOrigin(0.5, 0.5);
     restartText.setDepth(101);
   }
 
   winGame() {
+    console.log("winGame() called");
     this.isWin = true;
     this.ball.setVelocity(0, 0);
     
@@ -379,7 +498,7 @@ export class GameScene extends Phaser.Scene {
       if (distance < 100 && distance > 0) {
         brick.health -= 1;
         if (brick.health <= 0) {
-          brick.disableBody(true, true);
+          this.destroyBrick(brick);
           this.score += 10;
         } else {
           brick.setAlpha(0.5);
@@ -413,7 +532,7 @@ export class GameScene extends Phaser.Scene {
             laser.hitBricks.add(brick); // Mark as hit
             brick.health -= 1; // Only deal 1 damage
             if (brick.health <= 0) {
-              brick.disableBody(true, true);
+              this.destroyBrick(brick);
               this.score += 10;
             } else {
               brick.setAlpha(0.5);
