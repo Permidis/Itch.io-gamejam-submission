@@ -22,6 +22,7 @@ export class GameScene extends Phaser.Scene {
     this.isWin = false;
     this.explosionNextHit = false; // Explosion powerup active
     this.laserActive = false; // Laser powerup active
+    this.currentLevel = 1; // Level tracking (1-3)
   }
 
   create() {
@@ -32,8 +33,11 @@ export class GameScene extends Phaser.Scene {
     this.isGameOver = false;
     this.isWin = false;
     this.balls = []; // Reset balls array
+    if (!this.currentLevel) {
+      this.currentLevel = 1; // Initialize level if not set
+    }
 
-    this.paddle = new Paddle(this, 400, 560);
+    this.paddle = new Paddle(this, 600, 850);
     this.ball = new Ball(this, 400, 540);
     this.balls.push(this.ball);
 
@@ -55,12 +59,26 @@ export class GameScene extends Phaser.Scene {
       color: "#dfe7ff"
     });
 
-    this.messageText = this.add.text(400, 300, "Click or press SPACE to launch", {
+    this.messageText = this.add.text(this.scale.width / 2, this.scale.height / 2, "Click or press SPACE to launch", {
       fontSize: "24px",
       color: "#ffd166",
       align: "center"
     });
     this.messageText.setOrigin(0.5, 0.5);
+
+    // TEMPORARY TEST BUTTON - Remove before final submission
+    const testWinButton = this.add.text(this.scale.width - 20, this.scale.height - 20, "WIN", {
+      fontSize: "16px",
+      color: "#ff0000",
+      backgroundColor: "#222222",
+      padding: { x: 8, y: 4 }
+    });
+    testWinButton.setOrigin(1, 1);
+    testWinButton.setInteractive();
+    testWinButton.on("pointerdown", (pointer, gameObject, event) => {
+      event.stopPropagation();
+      this.winGame();
+    });
 
     this.cursors = this.input.keyboard.createCursorKeys();
 
@@ -73,7 +91,19 @@ export class GameScene extends Phaser.Scene {
 
     this.input.on("pointerdown", () => {
       if (this.isGameOver || this.isWin) {
-        this.scene.restart();
+        if (this.isWin && this.currentLevel < 3) {
+          // Proceed to next level
+          this.currentLevel++;
+          this.scene.restart();
+        } else if (this.isWin && this.currentLevel === 3) {
+          // Game complete - restart from level 1
+          this.currentLevel = 1;
+          this.scene.restart();
+        } else {
+          // Game over - restart from level 1
+          this.currentLevel = 1;
+          this.scene.restart();
+        }
         return;
       }
       this.tryLaunchBall();
@@ -81,7 +111,19 @@ export class GameScene extends Phaser.Scene {
 
     this.input.keyboard.on("keydown-SPACE", () => {
       if (this.isGameOver || this.isWin) {
-        this.scene.restart();
+        if (this.isWin && this.currentLevel < 3) {
+          // Proceed to next level
+          this.currentLevel++;
+          this.scene.restart();
+        } else if (this.isWin && this.currentLevel === 3) {
+          // Game complete - restart from level 1
+          this.currentLevel = 1;
+          this.scene.restart();
+        } else {
+          // Game over - restart from level 1
+          this.currentLevel = 1;
+          this.scene.restart();
+        }
         return;
       }
       this.tryLaunchBall();
@@ -167,8 +209,8 @@ export class GameScene extends Phaser.Scene {
     if (!this.textures.exists("brick")) {
       const graphics = this.add.graphics();
       graphics.fillStyle(0xff6b6b, 1);
-      graphics.fillRoundedRect(0, 0, 60, 24, 6);
-      graphics.generateTexture("brick", 60, 24);
+      graphics.fillRoundedRect(0, 0, 35, 60, 6);
+      graphics.generateTexture("brick", 35, 60);
       graphics.destroy();
     }
 
@@ -190,20 +232,28 @@ export class GameScene extends Phaser.Scene {
   }
 
   createBricks() {
-    const rows = 5;
-    const cols = 10;
-    const offsetX = 80;
-    const offsetY = 90;
-    const spacingX = 64;
-    const spacingY = 30;
+    const numClusters = 2;
+    const clusterCols = 9;
+    const clusterRows = 9;
+    const spacingX = 45;
+    const spacingY = 60;
+    const offsetY = 50;
+    const clusterWidth = clusterCols * spacingX;
+    const gap = 100; // Gap between clusters (large enough for ball)
+    const totalWidth = (clusterWidth * numClusters) + gap;
+    const offsetX = (1200 - totalWidth) / 2; // Center clusters horizontally
 
-    for (let row = 0; row < rows; row += 1) {
-      for (let col = 0; col < cols; col += 1) {
-        const x = offsetX + col * spacingX;
-        const y = offsetY + row * spacingY;
-        const brick = this.bricks.create(x, y, "brick");
-        brick.setTint(Phaser.Display.Color.GetColor(255, 107 - row * 10, 107 + row * 15));
-        brick.health = 2; // Bricks take 2 hits to destroy
+    for (let clusterIdx = 0; clusterIdx < numClusters; clusterIdx++) {
+      const baseX = offsetX + clusterIdx * (clusterWidth + gap);
+      
+      for (let row = 0; row < clusterRows; row += 1) {
+        for (let col = 0; col < clusterCols; col += 1) {
+          const x = baseX + col * spacingX;
+          const y = offsetY + row * spacingY;
+          const brick = this.bricks.create(x, y, "brick");
+          brick.setTint(Phaser.Display.Color.GetColor(255, 107 - row * 10, 107 + row * 15));
+          brick.health = 2; // Bricks take 2 hits to destroy
+        }
       }
     }
   }
@@ -303,7 +353,13 @@ export class GameScene extends Phaser.Scene {
   winGame() {
     this.isWin = true;
     this.ball.setVelocity(0, 0);
-    this.messageText.setText("You Win!\nClick or press SPACE to restart");
+    
+    if (this.currentLevel < 3) {
+      this.messageText.setText("Click to proceed to next level");
+    } else {
+      this.messageText.setText("VICTORY");
+    }
+    
     this.messageText.setVisible(true);
   }
 
@@ -339,6 +395,7 @@ export class GameScene extends Phaser.Scene {
     const laser = this.add.sprite(paddleX, this.paddle.y - 50, "laser");
     laser.setOrigin(0.5, 0);
     laser.setScale(1, 2); // Make it taller
+    laser.hitBricks = new Set(); // Track bricks hit by this laser
     
     // Move laser upward
     const laserTween = this.tweens.add({
@@ -349,10 +406,12 @@ export class GameScene extends Phaser.Scene {
         // Check collision with bricks
         this.bricks.children.entries.forEach(brick => {
           if (!brick.active) return;
+          if (laser.hitBricks.has(brick)) return; // Already hit this brick
           
           const distance = Phaser.Math.Distance.Between(laser.x, laser.y, brick.x, brick.y);
           if (distance < 50) {
-            brick.health -= 1;
+            laser.hitBricks.add(brick); // Mark as hit
+            brick.health -= 1; // Only deal 1 damage
             if (brick.health <= 0) {
               brick.disableBody(true, true);
               this.score += 10;
