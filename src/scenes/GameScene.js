@@ -172,13 +172,13 @@ export class GameScene extends Phaser.Scene {
     this.messageText.setDepth(10);
 
     // TEMPORARY TEST BUTTON - Remove before final submission
-    const testWinButton = this.add.text(this.scale.width - 20, this.scale.height - 20, "WIN", {
+    const testWinButton = this.add.text(this.scale.width - 10, 10, "WIN", {
       fontSize: "16px",
       color: "#ff0000",
       backgroundColor: "#222222",
       padding: { x: 8, y: 4 }
     });
-    testWinButton.setOrigin(1, 1);
+    testWinButton.setOrigin(1, 0);
     testWinButton.setInteractive({ useHandCursor: true });
     testWinButton.on("pointerdown", (pointer) => {
       console.log("Button clicked, about to call winGame()");
