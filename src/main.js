@@ -13,6 +13,9 @@ const config = {
       debug: false
     }
   },
+  loader: {
+    baseURL: ""
+  },
   scene: [GameScene]
 };
 

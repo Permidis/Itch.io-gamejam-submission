@@ -1,5 +1,5 @@
 :root {
-  --color-bg: #0b0f1a;
+  --color-bg: #030e2fd0;
   --color-text: #f5f5f5;
   --color-border: #25324a;
   --shadow-canvas: 0 10px 40px rgba(0, 0, 0, 0.4);
@@ -22,10 +22,41 @@ body {
   height: 100%;
 }
 
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  min-height: 100vh;
+  padding: 24px;
+}
+
 #game {
   display: grid;
   place-items: center;
-  height: 100vh;
+}
+
+.side-art {
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.35));
+}
+
+@media (max-width: 1500px) {
+  .side-art {
+    max-height: 70vh;
+  }
+}
+
+@media (max-width: 1200px) {
+  .page {
+    flex-direction: column;
+  }
+  .side-art {
+    max-height: 40vh;
+  }
 }
 
 canvas {

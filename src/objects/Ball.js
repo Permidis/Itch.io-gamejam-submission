@@ -1,15 +1,16 @@
 export class Ball extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, color = 0xf4f1de) {
-    super(scene, x, y, "ball");
+  constructor(scene, x, y, texture = "mainball") {
+    super(scene, x, y, texture);
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
     this.setBounce(1, 1);
     this.setCollideWorldBounds(false);
-    this.setCircle(this.width / 2);
+    this.setDisplaySize(32, 32);
+    this.body.setCircle(18);
+    this.body.setOffset(-2, -2);
     this.setData("stuck", true);
-    this.setTint(color);
   }
 
   launch(speed = 260) {

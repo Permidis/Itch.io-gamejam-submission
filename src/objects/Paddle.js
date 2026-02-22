@@ -6,6 +6,7 @@ export class Paddle extends Phaser.Physics.Arcade.Sprite {
     scene.physics.add.existing(this);
 
     this.setOrigin(0.5, 0.5);
+    this.setDisplaySize(120, 40);
     this.body.setImmovable(true);
     this.body.setAllowGravity(false);
   }
